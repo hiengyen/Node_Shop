@@ -3,6 +3,8 @@
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
 const keyTokenService = require('./keyToken.service')
+const { createTokenPair, verifyJWT } = require('../auth/authUtils')
+const { getInfoData } = require('../../utils/index')
 const {
   ConflictRequestError,
   BadRequestError,
