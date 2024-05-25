@@ -23,7 +23,6 @@ const keyTokenSchema = new Schema(
       required: true,
     },
     refreshTokensUsed: {
-      //Refresh Token is used
       type: Array,
       default: [],
     },
@@ -35,7 +34,7 @@ const keyTokenSchema = new Schema(
   {
     collection: COLLECTION_NAME,
     timestamps: true,
-  }
+  },
 )
 
 //Export the model

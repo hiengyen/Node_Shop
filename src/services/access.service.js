@@ -55,59 +55,8 @@ class AccessService {
       tokens,
     }
   }
-  static handleRefreshToken = async refreshToken => {
-    const foundToken =
-      await keyTokenService.findByRefreshTokensUsed(refreshToken)
-    if (foundToken) {
-      //verify to detect who is accessing
-      const { userId, email } = await verifyJWT(
-        refreshToken,
-        foundToken.privateKey,
-      )
-      console.log('[1]--', { userId, email })
-      //delete all token into keyStore
-      await keyTokenService.deleteKeyById(userId)
-      throw new ForbiddenError('Something wrong happen!Please login again!')
-    }
 
-    //token is using
-    const holderToken = await keyTokenService.findByRefreshToken(refreshToken)
-    if (!holderToken) throw new AuthFailureError('Admin not registered 1')
-
-    //verify
-    const { userId, email } = await verifyJWT(
-      refreshToken,
-      holderToken.privateKey,
-    )
-    console.log('[2]--', { userId, email })
-
-    //check userId
-    const foundAdmin = await findByEmail({ email })
-    if (!foundAdmin) throw new AuthFailureError('Admin not registered 2')
-
-    //create a new couple tokens
-    const tokens = await createTokenPair(
-      { userId, email },
-      holderToken.publicKey,
-      holderToken.privateKey,
-    )
-
-    //update tokens
-    await holderToken.updateOne({
-      $set: {
-        refreshToken: tokens.refreshToken, // RT da duoc cap moi
-      },
-      $addToSet: {
-        refreshTokensUsed: refreshToken, // RT da duoc su dung de tao token moi
-      },
-    })
-    return {
-      user: { userId, email },
-      tokens,
-    }
-  }
-
-  static logout = async keyStore => {
+  static logoutAdmin = async keyStore => {
     const delKey = await keyTokenService.removeTokenById(keyStore._id)
     console.log(delKey)
     return delKey
@@ -120,7 +69,7 @@ class AccessService {
     4-generate tokens 
     5-get data return login
   */
-  static login = async ({ email, password, refreshToken = null }) => {
+  static loginAdmin = async ({ email, password, refreshToken = null }) => {
     //1-check email in dbs
     const foundShop = await findByEmail({ email })
     if (!foundShop) throw new BadRequestError('Shop not registered!')
@@ -158,7 +107,7 @@ class AccessService {
     }
   }
 
-  static signUp = async ({ name, email, password }) => {
+  static signUpAdmin = async ({ name, email, password }) => {
     //step1: check email exist??
 
     const holderAdmin = await adminModel.findOne({ email }).lean() // using lean() after find() speed up query data
@@ -216,13 +165,6 @@ class AccessService {
       code: 200,
       metadata: null,
     }
-    // } catch (err) {
-    //   return {
-    //     code: 'xxx',
-    //     message: err.message,
-    //     status: 'error',
-    //   }
-    // }
   }
 }
 
